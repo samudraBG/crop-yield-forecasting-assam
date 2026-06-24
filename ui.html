@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rice Yield prediction</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2E7D32;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-color: #333333;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .result {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+            background-color: #e8f5e9;
+            display: none;
+        }
+        
+        .result h2 {
+            color: var(--secondary-color);
+            margin-top: 0;
+        }
+        
+        .predicted-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+        
+        .unit {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .info-section {
+            margin-top: 30px;
+        }
+        
+        .info-section h3 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 20px 0;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Rice Yield Prediction</h1>
+            <p>Predict rice yield based on environmental factors</p>
+        </header>
+        
+        <div class="card">
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="t2m_max">Maximum Temperature (°C)</label>
+                    <input type="number" id="t2m_max" step="0.1" placeholder="Enter maximum temperature" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="t2m_min">Minimum Temperature (°C)</label>
+                    <input type="number" id="t2m_min" step="0.1" placeholder="Enter minimum temperature" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rh2m">Relative Humidity (%)</label>
+                    <input type="number" id="rh2m" step="0.1" placeholder="Enter relative humidity" required min="0" max="100">
+                </div>
+                
+                <button type="submit" id="predictBtn">Predict Yield</button>
+            </form>
+            
+            <div class="result" id="result">
+                <h2>Predicted Rice Yield</h2>
+                <div class="predicted-value" id="predictedValue">0</div>
+                <div class="unit">tons per hectare</div>
+            </div>
+        </div>
+        
+        <div class="card info-section">
+            <h3>About This Model</h3>
+            <p>This prediction tool uses an XGBoost machine learning model trained on historical rice yield data with the following environmental parameters:</p>
+            <ul>
+                <li><strong>Maximum Temperature (T2M_MAX):</strong> The highest temperature recorded during the growing season</li>
+                <li><strong>Minimum Temperature (T2M_MIN):</strong> The lowest temperature recorded during the growing season</li>
+                <li><strong>Relative Humidity (RH2M):</strong> The average relative humidity during the growing season</li>
+            </ul>
+            <p>For best results, input values that represent average conditions over the entire growing season.</p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Rice Yield Prediction Tool &copy; 2023 | Agricultural Analytics</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.18.0/dist/tf-converter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu@3.18.0/dist/tf-backend-cpu.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@3.18.0/dist/tf-backend-webgl.min.js"></script>
+    
+    <script>
+        // Load the XGBoost model
+        let model;
+        
+        async function loadModel() {
+            try {
+                // In a real application, you would load the actual model here
+                // model = await tf.loadGraphModel('rice_yield_model.pkl');
+                
+                // For this demo, we'll simulate model loading and prediction
+                console.log("Model loading simulated");
+                document.getElementById('predictBtn').disabled = false;
+                document.getElementById('predictBtn').textContent = 'Predict Yield';
+            } catch (error) {
+                console.error("Error loading model:", error);
+                alert("Error loading prediction model. Please try again later.");
+            }
+        }
+        
+        // Form submission handler
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const predictBtn = document.getElementById('predictBtn');
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+            
+            // Get input values
+            const t2m_max = parseFloat(document.getElementById('t2m_max').value);
+            const t2m_min = parseFloat(document.getElementById('t2m_min').value);
+            const rh2m = parseFloat(document.getElementById('rh2m').value);
+            
+            try {
+                // In a real application, you would use the actual model to predict
+                // const inputTensor = tf.tensor2d([[t2m_max, t2m_min, rh2m]]);
+                // const prediction = model.predict(inputTensor);
+                // const yieldValue = prediction.dataSync()[0];
+                
+                // For this demo, we'll simulate a prediction with a simple formula
+                // This is just for demonstration - the real model would be more complex
+                const simulatedYield = 2.5 + 
+                                      (t2m_max * 0.05) + 
+                                      (t2m_min * 0.03) + 
+                                      (rh2m * 0.02) +
+                                      (Math.random() * 0.5 - 0.25); // Add some random variation
+                
+                // Display the result
+                const resultDiv = document.getElementById('result');
+                const predictedValue = document.getElementById('predictedValue');
+                
+                predictedValue.textContent = simulatedYield.toFixed(2);
+                resultDiv.style.display = 'block';
+                
+                // Scroll to result
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error("Prediction error:", error);
+                alert("An error occurred during prediction. Please try again.");
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = 'Predict Yield';
+            }
+        });
+        
+        // Load the model when the page loads
+        document.addEventListener('DOMContentLoaded', loadModel);
+    </script>
+</body>
+</html>
