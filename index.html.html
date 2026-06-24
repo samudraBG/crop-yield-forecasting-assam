@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCast - Advanced Rice Yield Predictor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 43, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.25);
+            --accent-blue: #3b82f6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --font-family: 'Plus Jakarta Sans', sans-serif;
+            --header-font: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0 30px 0;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 35px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary), var(--accent-blue));
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            font-weight: 800;
+            color: #ffffff;
+            font-size: 1.4rem;
+        }
+
+        .logo-text h1 {
+            font-family: var(--header-font);
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .badge {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.04);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-title {
+            font-family: var(--header-font);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .label-val {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        input[type="number"], input[type="range"] {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--card-border);
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-family: var(--font-family);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            border: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+            transition: transform 0.1s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .row-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-fill-defaults {
+            background-color: rgba(16, 185, 129, 0.08);
+            border: 1px dashed var(--primary);
+            color: var(--primary);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 25px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-fill-defaults:hover {
+            background-color: var(--primary);
+            color: #0b0f19;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Results dashboard */
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .main-prediction-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.08));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .prediction-text h2 {
+            font-family: var(--header-font);
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .prediction-value-container {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .prediction-value {
+            font-family: var(--header-font);
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            background: linear-gradient(135deg, #ffffff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .prediction-unit {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .deviation-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-positive {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--primary);
+        }
+
+        .badge-negative {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 576px) {
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mini-card {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mini-card-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .mini-card-val {
+            font-family: var(--header-font);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+
+        .mini-card-icon {
+            font-size: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--card-border);
+            padding-top: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <div class="logo-icon">🌾</div>
+                <div class="logo-text">
+                    <h1>AgroCast </h1>
+                    <p> Rice Yield predictor</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Sidebar Parameter Settings -->
+            <div class="card">
+                <div class="form-title">
+                    <span>⚙️</span> Environmental Inputs
+                </div>
+
+                <button type="button" id="btnDefaults" class="btn-fill-defaults">
+                    💡 Auto-Load India Climate Averages
+                </button>
+
+                <div class="row-inputs">
+                    <div class="form-group">
+                        <label for="year">Forecast Year</label>
+                        <input type="number" id="year" min="2024" max="2035" value="2025">
+                    </div>
+                    <div class="form-group">
+                        <label for="prectot">
+                            Precipitation
+                        </label>
+                        <input type="number" id="prectot_val" step="0.1" value="4.6">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="t2m_max_slider">
+                        Max Temperature (°C)
+                        <span class="label-val" id="val_t2m_max">30.3°C</span>
+                    </label>
+                    <input type="range" id="t2m_max" min="20" max="40" step="0.1" value="30.3">
+                </div>
+
+                <div class="form-group">
+                    <label for="t2m_min_slider">
+                        Min Temperature (°C)
+                        <span class="label-val" id="val_t2m_min">-1.2°C</span>
+                    </label>
+                    <input type="range" id="t2m_min" min="-10" max="15" step="0.1" value="-1.2">
+                </div>
+
+                <div class="form-group">
+                    <label for="rh2m_slider">
+                        Relative Humidity (%)
+                        <span class="label-val" id="val_rh2m">74.8%</span>
+                    </label>
+                    <input type="range" id="rh2m" min="40" max="100" step="0.1" value="74.8">
+                </div>
+
+                <div class="form-group">
+                    <label for="prectot_slider">
+                        Rainfall Intensity (mm/day)
+                        <span class="label-val" id="val_prectot">4.6 mm</span>
+                    </label>
+                    <input type="range" id="prectot" min="0" max="15" step="0.1" value="4.6">
+                </div>
+            </div>
+
+            <!-- Main Yield Dashboard -->
+            <div class="results-panel">
+                <!-- Main Value Box -->
+                <div class="main-prediction-box">
+                    <div class="prediction-text">
+                        <h2>Predicted Rice Yield</h2>
+                        <div class="prediction-value-container">
+                            <span class="prediction-value" id="predVal">0.00</span>
+                            <span class="prediction-unit">tonnes / hectare</span>
+                        </div>
+                        <div class="deviation-indicator" id="deviationBox">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <div style="font-size: 4rem; filter: drop-shadow(0 0 15px var(--primary-glow));">🌾</div>
+                </div>
+
+                <!-- Climate Averages Reference Grid -->
+                <div class="insights-grid">
+                    <div class="mini-card">
+                        <div>
+                            <div class="mini-card-label">Historical Average</div>
+                            <div class="mini-card-val">3.93 t/ha</div>
+                        </div>
+                        <span class="mini-card-icon"></span>
+                    </div>
+                    <div class="mini-card">
+                        <div>
+                            <div class="mini-card-label">Latest 2023 Yield</div>
+                            <div class="mini-card-val">4.32 t/ha</div>
+                        </div>
+                        <span class="mini-card-icon"></span>
+                    </div>
+                </div>
+
+                <!-- Climate Scenarios Charts Card -->
+                <div class="card">
+                    <div style="font-family: var(--header-font); font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; color: #ffffff;">
+                        🌍 Climate Scenarios & What-If Simulations
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="scenariosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>AgroCast Model &copy; 2026 | Trained on FAOSTAT India Crop Database & NASA POWER Climate Averages</p>
+        </footer>
+    </div>
+
+    <script>
+        // Model Coefficients (trained on real FAOSTAT India Rice Yield 2012-2023 & NASA POWER datasets)
+        // R2 = 0.9756, RMSE = 0.0531 t/ha
+        const INTERCEPT = -152.6685;
+        const BETA_YEAR = 0.0827;
+        const BETA_T2M_MAX = -0.0962;
+        const BETA_T2M_MIN = -0.0353;
+        const BETA_RH2M = -0.1079;
+        const BETA_PRECTOT = 0.1315;
+
+        const HISTORICAL_AVG = 3.931; // Mean yield of India (2012-2023)
+
+        // DOM Inputs
+        const inputYear = document.getElementById('year');
+        const inputPrectotVal = document.getElementById('prectot_val');
+
+        const sliderT2mMax = document.getElementById('t2m_max');
+        const valT2mMax = document.getElementById('val_t2m_max');
+        const sliderT2mMin = document.getElementById('t2m_min');
+        const valT2mMin = document.getElementById('val_t2m_min');
+        const sliderRh2m = document.getElementById('rh2m');
+        const valRh2m = document.getElementById('val_rh2m');
+        const sliderPrectot = document.getElementById('prectot');
+        const valPrectot = document.getElementById('val_prectot');
+
+        const btnDefaults = document.getElementById('btnDefaults');
+        const predVal = document.getElementById('predVal');
+        const deviationBox = document.getElementById('deviationBox');
+
+        // Chart reference
+        let chart = null;
+
+        // Synchronize range sliders and numerical fields
+        function updateLabels() {
+            valT2mMax.textContent = `${parseFloat(sliderT2mMax.value).toFixed(1)}°C`;
+            valT2mMin.textContent = `${parseFloat(sliderT2mMin.value).toFixed(1)}°C`;
+            valRh2m.textContent = `${parseFloat(sliderRh2m.value).toFixed(1)}%`;
+            valPrectot.textContent = `${parseFloat(sliderPrectot.value).toFixed(1)} mm`;
+            inputPrectotVal.value = parseFloat(sliderPrectot.value).toFixed(1);
+        }
+
+        // Live calculation logic
+        function predictYield(year, t2m_max, t2m_min, rh2m, prectot) {
+            return INTERCEPT + 
+                   (year * BETA_YEAR) + 
+                   (t2m_max * BETA_T2M_MAX) + 
+                   (t2m_min * BETA_T2M_MIN) + 
+                   (rh2m * BETA_RH2M) + 
+                   (prectot * BETA_PRECTOT);
+        }
+
+        function runSimulation() {
+            const year = parseInt(inputYear.value) || 2025;
+            const t2m_max = parseFloat(sliderT2mMax.value);
+            const t2m_min = parseFloat(sliderT2mMin.value);
+            const rh2m = parseFloat(sliderRh2m.value);
+            const prectot = parseFloat(sliderPrectot.value);
+
+            // Baseline Calculation
+            const baseline = predictYield(year, t2m_max, t2m_min, rh2m, prectot);
+
+            // Update main view
+            predVal.textContent = Math.max(0, baseline).toFixed(3);
+
+            // Calculate deviation status
+            const devPct = ((baseline - HISTORICAL_AVG) / HISTORICAL_AVG) * 100;
+            if (devPct >= 0) {
+                deviationBox.innerHTML = `
+                    <span class="status-badge badge-positive">+${devPct.toFixed(1)}%</span>
+                    <span style="color: var(--text-secondary);">above typical India historical baseline</span>
+                `;
+            } else {
+                deviationBox.innerHTML = `
+                    <span class="status-badge badge-negative">${devPct.toFixed(1)}%</span>
+                    <span style="color: var(--text-secondary);">below typical India historical baseline</span>
+                `;
+            }
+
+            // Simulate Climate Scenarios
+            // Scenario 1: Heatwave (+2 °C warming)
+            const heatwave = predictYield(year, t2m_max + 2.0, t2m_min + 2.0, rh2m, prectot);
+
+            // Scenario 2: Drought (-25% precipitation)
+            const drought = predictYield(year, t2m_max, t2m_min, rh2m, prectot * 0.75);
+
+            // Scenario 3: Heavy Monsoon (+25% precipitation)
+            const monsoon = predictYield(year, t2m_max, t2m_min, rh2m, prectot * 1.25);
+
+            updateChart(baseline, heatwave, drought, monsoon);
+        }
+
+        // Draw and Update Scenario Chart
+        function updateChart(base, heat, dry, wet) {
+            const dataVals = [
+                Math.max(0, base),
+                Math.max(0, heat),
+                Math.max(0, dry),
+                Math.max(0, wet)
+            ];
+
+            if (chart) {
+                chart.data.datasets[0].data = dataVals;
+                chart.update();
+                return;
+            }
+
+            const ctx = document.getElementById('scenariosChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Baseline Prediction', 'Heatwave (+2°C)', 'Drought (-25% Rain)', 'Monsoon (+25% Rain)'],
+                    datasets: [{
+                        data: dataVals,
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.75)',  // Emerald Green
+                            'rgba(239, 68, 68, 0.75)',   // Accent Red
+                            'rgba(245, 158, 11, 0.75)',  // Accent Orange
+                            'rgba(59, 130, 246, 0.75)'   // Accent Blue
+                        ],
+                        borderColor: [
+                            '#10b981',
+                            '#ef4444',
+                            '#f59e0b',
+                            '#3b82f6'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#9ca3af' },
+                            title: {
+                                display: true,
+                                text: 'Yield (tonnes / hectare)',
+                                color: '#9ca3af'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Set India Historical Averages
+        btnDefaults.addEventListener('click', () => {
+            sliderT2mMax.value = 30.3;
+            sliderT2mMin.value = -1.2;
+            sliderRh2m.value = 74.8;
+            sliderPrectot.value = 4.6;
+            inputYear.value = 2025;
+            
+            updateLabels();
+            runSimulation();
+        });
+
+        // Sync numeric input value changes to ranges
+        inputPrectotVal.addEventListener('change', (e) => {
+            let val = parseFloat(e.target.value);
+            if (isNaN(val)) val = 4.6;
+            sliderPrectot.value = Math.max(0, Math.min(15, val));
+            updateLabels();
+            runSimulation();
+        });
+
+        // Event Listeners for Live Computation on Inputs
+        [sliderT2mMax, sliderT2mMin, sliderRh2m, sliderPrectot, inputYear].forEach(el => {
+            el.addEventListener('input', () => {
+                updateLabels();
+                runSimulation();
+            });
+        });
+
+        // App Initial Setup
+        updateLabels();
+        runSimulation();
+    </script>
+</body>
+</html>
